@@ -1,0 +1,25 @@
+
+@host = 127.0.0.1
+@port = 8000
+@base = http://{{host}}:{{port}}/
+
+
+### GET index
+GET {{base}}
+
+
+### GET invalid secret
+GET {{base}}803fac0390f32adc7c4e
+
+
+### GET valid, but non-existent secret
+GET {{base}}803fac0390f32adc7c4ef0c011fa649c
+
+
+### POST data (create secret)
+POST {{base}}
+Content-Type: application/json; charset=utf-8
+
+{
+    "data":"password"
+}
