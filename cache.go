@@ -3,7 +3,6 @@
 package main
 
 import (
-	"log"
 	"sync"
 	"time"
 )
@@ -31,7 +30,7 @@ func cleanCache() {
 	for ip, expire := range cache {
 		if time.Now().After(expire) {
 			delete(cache, ip)
-			log.Println("Deleted from IP cache:", ip)
+			//log.Println("Deleted from IP cache:", ip)
 		}
 	}
 }
@@ -44,7 +43,7 @@ func setCache(ip string) {
 	cache[ip] = expire
 	locker.Unlock()
 
-	log.Println("Added to IP cache:", ip, "(expire: "+expire.Format("15:04:05")+")")
+	//log.Println("Added to IP cache:", ip, "(expire: "+expire.Format("15:04:05")+")")
 }
 
 func isCached(ip string) bool {
