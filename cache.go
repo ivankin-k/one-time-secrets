@@ -1,0 +1,57 @@
+// TTL-based cache (for POST requests per IP)
+
+package main
+
+import (
+	"log"
+	"sync"
+	"time"
+)
+
+var (
+	cache  map[string]time.Time
+	locker *sync.RWMutex
+)
+
+func init() {
+	cache = make(map[string]time.Time)
+	locker = &sync.RWMutex{}
+
+	go func() {
+		for {
+			cleanCache()
+			time.Sleep(IP_DELAY_SEC / 2 * time.Second)
+		}
+	}()
+}
+
+func cleanCache() {
+	locker.Lock()
+	defer locker.Unlock()
+	for ip, expire := range cache {
+		if time.Now().After(expire) {
+			delete(cache, ip)
+			log.Println("Deleted from IP cache:", ip)
+		}
+	}
+}
+
+func setCache(ip string) {
+	var expire time.Time
+
+	expire = time.Now().Add(IP_DELAY_SEC * time.Second)
+	locker.Lock()
+	cache[ip] = expire
+	locker.Unlock()
+
+	log.Println("Added to IP cache:", ip, "(expire: "+expire.Format("15:04:05")+")")
+}
+
+func isCached(ip string) bool {
+	locker.Lock()
+	defer locker.Unlock()
+	if _, ok := cache[ip]; ok {
+		return true
+	}
+	return false
+}
