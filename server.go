@@ -30,9 +30,9 @@ func generateId() (id string) {
 		source rand.Source
 	)
 
-	for range ID_LEN {
+	for range idLength {
 		source = rand.NewSource(time.Now().UnixNano())
-		id += string(ID_SYMBS[rand.New(source).Intn(len(ID_SYMBS))])
+		id += string(idUsedSymbols[rand.New(source).Intn(len(idUsedSymbols))])
 	}
 
 	return id
@@ -50,7 +50,7 @@ func getSecret(w http.ResponseWriter, r *http.Request) {
 
 	// Check if valid secretId is received
 	secretId = r.PathValue("secretId")
-	match, err = regexp.MatchString("^[a-z0-9]{"+strconv.Itoa(ID_LEN)+"}$", secretId)
+	match, err = regexp.MatchString("^[a-z0-9]{"+strconv.Itoa(idLength)+"}$", secretId)
 	if err != nil || match == false {
 		http.NotFound(w, r)
 		return
@@ -115,7 +115,7 @@ func postSecret(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if isCached(ip) {
-		http.Error(w, fmt.Sprintf("Requests more frequently than once every %d seconds are not allowed.", IP_DELAY_SEC),
+		http.Error(w, fmt.Sprintf("Requests more frequently than once every %d seconds are not allowed.", ipDelaySec),
 			http.StatusTooManyRequests)
 		return
 	}
@@ -189,7 +189,7 @@ func postSecret(w http.ResponseWriter, r *http.Request) {
 	// Send generated secret info
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://" + HOST + ":" + PORT + "/" + secret.ID))
+	w.Write([]byte("http://" + host + ":" + port + "/" + secret.ID))
 }
 
 func main() {
@@ -201,10 +201,10 @@ func main() {
 
 	// Create a store path (if needed) and get it's info
 	for info == nil {
-		info, err = os.Stat(STORE_PATH)
+		info, err = os.Stat(storePath)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
-				err = os.Mkdir(STORE_PATH, 0700)
+				err = os.Mkdir(storePath, 0700)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -216,11 +216,11 @@ func main() {
 
 	// Check it's a directory
 	if !info.IsDir() {
-		log.Fatalf("Not a directory: %s", STORE_PATH)
+		log.Fatalf("Not a directory: %s", storePath)
 	}
 
 	// Set up folder root (secrets store) to work with
-	secretsStore, err = os.OpenRoot(STORE_PATH)
+	secretsStore, err = os.OpenRoot(storePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -232,8 +232,8 @@ func main() {
 	router.HandleFunc("GET /{secretId}", getSecret)
 	router.HandleFunc("POST /{$}", postSecret)
 
-	log.Print("Starting the server at " + HOST + ":" + PORT + "...")
-	err = http.ListenAndServe(HOST+":"+PORT, router)
+	log.Print("Starting the server at " + host + ":" + port + "...")
+	err = http.ListenAndServe(host+":"+port, router)
 	if err != nil {
 		log.Fatal(err)
 	}

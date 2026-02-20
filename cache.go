@@ -19,7 +19,7 @@ func init() {
 	go func() {
 		for {
 			cleanCache()
-			time.Sleep(IP_DELAY_SEC / 2 * time.Second)
+			time.Sleep(ipDelaySec / 2 * time.Second)
 		}
 	}()
 }
@@ -38,12 +38,10 @@ func cleanCache() {
 func setCache(ip string) {
 	var expire time.Time
 
-	expire = time.Now().Add(IP_DELAY_SEC * time.Second)
+	expire = time.Now().Add(ipDelaySec * time.Second)
 	locker.Lock()
 	cache[ip] = expire
 	locker.Unlock()
-
-	//log.Println("Added to IP cache:", ip, "(expire: "+expire.Format("15:04:05")+")")
 }
 
 func isCached(ip string) bool {
